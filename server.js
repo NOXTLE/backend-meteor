@@ -1,66 +1,61 @@
+// TOP OF FILE: All your require statements and initial setup
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const connect = require("./config/db");
-const router = require("./Routes/userRoute"); // Assuming server.js is in 'backend' and Routes is in 'backend/Routes'
+const router = require("./Routes/userRoute");
 const server = express();
 const dotenv = require("dotenv");
 dotenv.config();
-const chatrouter = require("./Routes/chatRoute"); // CORRECTED PATH
-const messageRouter = require("./Routes/messageRouter"); // CORRECTED PATH
+const chatrouter = require("./Routes/chatRoute");
+const messageRouter = require("./Routes/messageRouter");
+
 connect();
 server.use(express.json());
 
-// --- CORRECTED EXPRESS CORS CONFIGURATION ---
+// EXPRESS CORS CONFIGURATION
 server.use(
   cors({
-    origin:
-      "https://frontend-meteor-git-master-adityas-projects-dcce7ebc.vercel.app", // NO TRAILING SLASH HERE, specific origin
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods for your API
-    credentials: true, // If you're sending cookies or auth headers
+    origin: [
+      "https://frontend-meteor.vercel.app", // Your main Vercel production URL
+      "https://frontend-meteor-git-master-adityas-projects-dcce7ebc.vercel.app", // Your Vercel preview/branch URL
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
 const PORT = process.env.PORT || 8080;
-// server.use(cors()); // REMOVE THIS LINE - it's replaced by the configured cors middleware above
 
+// API ROUTES
 server.use("/api/user", router);
 server.use("/api/chat", chatrouter);
 server.use("/api/message", messageRouter);
 
-// --- REMOVE OR KEEP COMMENTED THE FRONTEND DEPLOYMENT BLOCK ---
-// const __dirname1 = path.resolve();
-// if (process.env.NODE_ENV === "production") {
-//   server.use(express.static(path.join(__dirname1, "/client/dist")));
-//   server.get("*", (req, res) => {
-//     res.sendFile(path.resolve(__dirname1, "client", "dist", "index.html"));
-//   });
-// } else {
-//   server.get("/", (req, res) => {
-//     res.send("API SUCCESS");
-//   });
-// }
-// -----------------------------------------------------------
-
-// A basic root route to confirm backend is running (optional)
+// BASIC ROOT ROUTE (optional)
 server.get("/", (req, res) => {
   res.send("Backend API is running!");
 });
 
+// SERVER LISTEN
 const app = server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+// SOCKET.IO CONFIGURATION
 const io = require("socket.io")(app, {
   pingTimeout: 60000,
   cors: {
-    origin:
-      "https://frontend-meteor-git-master-adityas-projects-dcce7ebc.vercel.app", // CORRECTED: NO TRAILING SLASH HERE
-    methods: ["GET", "POST"], // Socket.IO typically uses GET/POST for handshake
+    origin: [
+      "https://frontend-meteor.vercel.app",
+      "https://frontend-meteor-git-master-adityas-projects-dcce7ebc.vercel.app",
+    ],
+    methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
+// SOCKET.IO EVENT HANDLERS
 io.on("connection", (socket) => {
   console.log("Connected to socket.io");
   socket.on("setup", (userData) => {
@@ -91,10 +86,7 @@ io.on("connection", (socket) => {
     socket.in(room).emit("stop typing");
   });
 
-  // --- CORRECTED DISCONNECT HANDLING ---
   socket.on("disconnect", () => {
-    // Listen for the 'disconnect' event
     console.log("USER DISCONNECTED from socket");
-    // No need to explicitly leave rooms here, Socket.IO handles it
   });
 });
