@@ -17,7 +17,7 @@ server.use(express.json());
 server.use(
   cors({
     origin: [
-      "https://localhost:5174",
+      "http://localhost:5174",
       "https://frontend-meteor.vercel.app", // Your main Vercel production URL
       "https://frontend-meteor-git-master-adityas-projects-dcce7ebc.vercel.app", // Your Vercel preview/branch URL
     ],
